@@ -1,2 +1,7 @@
-# Empty C Example
-This example project shows an empty configuration that can be used as a starting point to add components and functionality.
+# Banana Tree (Touch Slider Game)
+
+This project is my solution for the homework in VIMIA347
+
+## Specification
+
+Can be found in vimia347.pdf
