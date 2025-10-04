@@ -62,6 +62,8 @@
 #include "em_device.h"
 #include "em_cmu.h"
 
+#include <string.h>
+
 /***************************************************************************//**
  * Globals
  ******************************************************************************/
@@ -113,7 +115,6 @@ void Delay(uint32_t dlyTicks)
 void test_LCD(void);
 
 
-
 /***************************************************************************//**
  * Initialize application.
  ******************************************************************************/
@@ -143,6 +144,20 @@ void app_init(void)
  ******************************************************************************/
 void app_process_action(void)
 {
+  static char screen[] = "Hello  ";
+
+  char c;
+
+  SegmentLCD_Write(screen);
+
+  c = screen[0];
+
+  for (int i = 0; i < 6; i++) {
+      screen[i] = screen[i+1];
+  }
+  screen[6] = c;
+
+  Delay(500);
   return;
 }
 
@@ -153,8 +168,5 @@ void app_process_action(void)
 void test_LCD(void) {
   SegmentLCD_Number(42);
 
-  SegmentLCD_Write("Hello");
-
-  // draw LCD
-  //SegmentLCD_LowerSegments(lowerCharSegments);
+  return;
 }
