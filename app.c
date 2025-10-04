@@ -110,7 +110,6 @@ void Delay(uint32_t dlyTicks)
 /***************************************************************************//**
  * @brief Prints hello on screen
  ******************************************************************************/
-
 void test_LCD(void);
 
 
@@ -154,36 +153,8 @@ void app_process_action(void)
 void test_LCD(void) {
   SegmentLCD_Number(42);
 
-  // H
-  lowerCharSegments[0].b = 1;
-  lowerCharSegments[0].c = 1;
-  lowerCharSegments[0].e = 1;
-  lowerCharSegments[0].f = 1;
-  lowerCharSegments[0].g = 1;
-  lowerCharSegments[0].m = 1;
-  // E
-  lowerCharSegments[1].a = 1;
-  lowerCharSegments[1].d = 1;
-  lowerCharSegments[1].e = 1;
-  lowerCharSegments[1].f = 1;
-  lowerCharSegments[1].g = 1;
-  lowerCharSegments[1].m = 1;
-  // L
-  lowerCharSegments[2].d = 1;
-  lowerCharSegments[2].e = 1;
-  lowerCharSegments[2].f = 1;
-  // L
-  lowerCharSegments[3].d = 1;
-  lowerCharSegments[3].e = 1;
-  lowerCharSegments[3].f = 1;
-  // O
-  lowerCharSegments[4].a = 1;
-  lowerCharSegments[4].b = 1;
-  lowerCharSegments[4].c = 1;
-  lowerCharSegments[4].d = 1;
-  lowerCharSegments[4].e = 1;
-  lowerCharSegments[4].f = 1;
+  SegmentLCD_Write("Hello");
 
   // draw LCD
-  SegmentLCD_LowerSegments(lowerCharSegments);
+  //SegmentLCD_LowerSegments(lowerCharSegments);
 }
