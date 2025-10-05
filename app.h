@@ -18,6 +18,12 @@
 #ifndef APP_H
 #define APP_H
 
+// In ms, used for button polling as well
+#define GAME_TICK_INTERVAL 20
+
+#define TEXT_LENGTH 35
+#define DISPLAY_WIDTH 7
+
 /***************************************************************************//**
  * Initialize application.
  ******************************************************************************/

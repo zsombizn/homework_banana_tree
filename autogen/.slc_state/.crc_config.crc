@@ -4,3 +4,6 @@ sl_board_control_config.h=622062623
 sl_device_init_hfxo_config.h=-1233029975
 sl_device_init_lfxo_config.h=-1503725550
 sl_memory_config.h=-995392215
+sl_simple_button_btn0_config.h=1522829679
+sl_simple_button_btn1_config.h=-932283892
+sl_simple_button_config.h=-1269689451

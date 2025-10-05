@@ -29,12 +29,16 @@ component:
 - {id: EFM32GG990F1024}
 - {id: brd2200a}
 - {id: device_init}
+- {id: efm32gg_stk3700}
 - {id: emlib_acmp}
 - {id: emlib_ebi}
 - {id: emlib_lcd}
 - {id: emlib_lesense}
 - {id: emlib_rtc}
 - {id: emlib_vcmp}
+- instance: [btn0, btn1]
+  id: simple_button
+- {id: sl_string}
 - {id: sl_system}
 - {id: udelay}
 define:
