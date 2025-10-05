@@ -89,7 +89,9 @@ int sliderPos;
 int sliderDownsc = 0, sliderDownscOld = 0;
 int game_ticks = 0;
 
-bool reset_text = false;
+ScrollTextConfigType scrollTextConfig;
+
+const char * const textConstants[] = TEXT_CONSTANTS;
 
 /***************************************************************************//**
  * Function definitions
@@ -120,13 +122,18 @@ void Delay(uint32_t dlyTicks)
 
 
 /***************************************************************************//**
- * @brief Displays a text, scrolls if bigger than screen
+ * @brief Displays a text, scrolls if bigger than screen, based on config
  *
- * @param text The text itself
- * @param speed Game ticks per character
  ******************************************************************************/
-void display_text(const char text[TEXT_LENGTH], int speed);
+void displayScrollText(void);
 
+
+/***************************************************************************//**
+ * @brief Initialize scrolltext configuration with default values
+ *
+ * @return ScrollTExtConfigType
+ ******************************************************************************/
+ScrollTextConfigType initScrollTextConfig(void);
 
 /***************************************************************************//**
  * Initialize application.
@@ -146,6 +153,8 @@ void app_init(void)
 
   sl_button_enable(&sl_button_btn1);
 
+  scrollTextConfig = initScrollTextConfig();
+
   /* Setup SysTick Timer for 1 msec interrupts  */
   if (SysTick_Config(CMU_ClockFreqGet(cmuClock_CORE)/1000)) {
     while (1) ;
@@ -163,9 +172,6 @@ void app_process_action(void)
   uint32_t curTicks = msTicks;
   game_ticks++;
 
-  const char txt_press[TEXT_LENGTH] = "Pressed";
-  const char txt_rel[TEXT_LENGTH] = "Released";
-
   /*
    * Poll the button in every game tick, debouncing is set in config,
    * meaning it changes state after the last n inputs are consistent
@@ -174,15 +180,17 @@ void app_process_action(void)
   sl_button_poll_step(&sl_button_btn1);
 
   if (sl_button_get_state(&sl_button_btn1) == 1 ) {
-      if (last != 1) reset_text = true;
-      display_text(txt_press, 20);
+      if (last != 1) scrollTextConfig.reset = true;
+      sl_strcpy_s(scrollTextConfig.text, TEXT_LENGTH, textConstants[TXT_PRES]);
 
   } else {
-      if(last == 1) reset_text = true;
-      display_text(txt_rel, 20);
+      if(last == 1) scrollTextConfig.reset = true;
+      sl_strcpy_s(scrollTextConfig.text, TEXT_LENGTH, textConstants[TXT_REL]);
   }
 
   last = sl_button_get_state(&sl_button_btn1);
+
+  displayScrollText();
 
 
   while ((msTicks - curTicks) < GAME_TICK_INTERVAL) ;
@@ -190,38 +198,58 @@ void app_process_action(void)
   return;
 }
 
+
+/*
+ * Initialize ScrollTextConfigType with defaults
+ */
+ScrollTextConfigType initScrollTextConfig(void)
+{
+  ScrollTextConfigType res;
+
+  for (int i = 0; i < TEXT_LENGTH - 1; i++) {
+      res.text[i] = ' ';
+  }
+
+  res.text[TEXT_LENGTH - 1] = '\0';
+  res.speed = 20;
+  res.reset = true;
+
+  return res;
+}
+
 /*
  * Displays a scrolling text
  */
-void display_text(const char text[TEXT_LENGTH], int speed) {
+void displayScrollText(void)
+{
   static int pos = 0;
   static int t = 0;
 
   static char shifted[TEXT_LENGTH + 7];
 
-  int len = sl_strlen(text);
+  int len = sl_strlen(scrollTextConfig.text);
 
-  if (reset_text){
+  if (scrollTextConfig.reset){
       // padding
       for(int i = 0; i < DISPLAY_WIDTH; i++) {
           shifted[i] = ' ';
       }
 
-      sl_strcpy_s(&shifted[DISPLAY_WIDTH], TEXT_LENGTH, text);
+      sl_strcpy_s(&shifted[DISPLAY_WIDTH], TEXT_LENGTH, scrollTextConfig.text);
 
       t = 0;
       pos = 0;
-      reset_text = false;
+      scrollTextConfig.reset = false;
   }
 
   if (len <= DISPLAY_WIDTH){
-      SegmentLCD_Write(text);
+      SegmentLCD_Write(scrollTextConfig.text);
       return;
   }
 
   SegmentLCD_Write(&shifted[pos]);
 
-  if (t % speed == 0) pos = (pos < len+7) ? pos+1  : 0;
+  if (t % scrollTextConfig.speed == 0) pos = (pos < len+7) ? pos+1  : 0;
 
   t++;
 

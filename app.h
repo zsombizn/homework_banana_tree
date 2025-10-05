@@ -14,6 +14,7 @@
  * sections of the MSLA applicable to Source Code.
  *
  ******************************************************************************/
+#include <stdbool.h>
 
 #ifndef APP_H
 #define APP_H
@@ -23,6 +24,27 @@
 
 #define TEXT_LENGTH 35
 #define DISPLAY_WIDTH 7
+
+// used gpt to create enum based on array
+typedef enum {
+    TXT_REL,
+    TXT_PRES,
+    TXT_GAME_OVER,
+    TXT_COUNT
+} TextId;
+// end of generated content
+
+#define TEXT_CONSTANTS {     \
+  [TXT_REL] = "Released",    \
+  [TXT_PRES] = "Pressed",    \
+  [TXT_GAME_OVER] = "GAME OVER!" \
+  }
+
+typedef struct {
+  char text[TEXT_LENGTH];
+  int speed;
+  bool reset;
+} ScrollTextConfigType;
 
 /***************************************************************************//**
  * Initialize application.
