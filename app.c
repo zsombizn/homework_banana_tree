@@ -69,6 +69,9 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "sl_simple_led.h"
+#include "sl_simple_led_instances.h"
+
 
 /***************************************************************************//**
  * Globals
@@ -146,6 +149,8 @@ void app_init(void)
    * underlying base SegmentLCD driver.
    */
 
+  sl_led_toggle(&sl_led_led0);
+
   /* Enable LCD without voltage boost */
   SegmentLCD_Init(false);
 
@@ -184,6 +189,7 @@ void app_process_action(void)
   if (sl_button_get_state(&sl_button_btn1) == 1 ) {
       if (last != 1) scrollTextConfig.reset = true;
       sl_strcpy_s(scrollTextConfig.text, TEXT_LENGTH, textConstants[TXT_PRES]);
+      if (last != 1) sl_led_toggle(&sl_led_led0);
 
   } else {
       if(last == 1) scrollTextConfig.reset = true;
