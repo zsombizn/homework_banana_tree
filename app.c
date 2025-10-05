@@ -149,6 +149,8 @@ void app_init(void)
   /* Enable LCD without voltage boost */
   SegmentLCD_Init(false);
 
+  LCD_ContrastSet(25);
+
   CAPLESENSE_Init(false);
 
   sl_button_enable(&sl_button_btn1);
