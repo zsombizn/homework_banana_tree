@@ -25,14 +25,12 @@
 #define TEXT_LENGTH 35
 #define DISPLAY_WIDTH 7
 
-// used gpt to create enum based on array
 typedef enum {
     TXT_REL,
     TXT_PRES,
     TXT_GAME_OVER,
     TXT_COUNT
 } TextId;
-// end of generated content
 
 #define TEXT_CONSTANTS {     \
   [TXT_REL] = "Released",    \
@@ -45,6 +43,28 @@ typedef struct {
   int speed;
   bool reset;
 } ScrollTextConfigType;
+
+
+typedef const struct {
+  int difficulty;
+  int n_bananas;
+} GameConfigType;
+
+typedef int BananaState;
+
+typedef enum {
+  BANANA_CREATED,
+  BANANA_FALLING,
+  BANANA_LANDED
+} BananaStateId;
+
+typedef struct {
+  int n_catched;
+  int next_banana;
+
+
+} GameStateType;
+
 
 /***************************************************************************//**
  * Initialize application.

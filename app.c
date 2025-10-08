@@ -96,6 +96,8 @@ ScrollTextConfigType scrollTextConfig;
 
 const char * const textConstants[] = TEXT_CONSTANTS;
 
+GameConfigType GameConfig;
+
 /***************************************************************************//**
  * Function definitions
  ******************************************************************************/
