@@ -72,6 +72,7 @@
 #include "sl_simple_led.h"
 #include "sl_simple_led_instances.h"
 
+#include <psa/crypto.h>
 
 /***************************************************************************//**
  * Globals
@@ -90,13 +91,16 @@ SegmentLCD_LowerCharSegments_TypeDef lowerCharSegments[SEGMENT_LCD_NUM_OF_LOWER_
 volatile uint32_t msTicks; /* counts 1ms timeTicks */
 int sliderPos;
 int sliderDownsc = 0, sliderDownscOld = 0;
-int game_ticks = 0;
+
+uint32_t game_ticks = 0;
 
 ScrollTextConfigType scrollTextConfig;
 
 const char * const textConstants[] = TEXT_CONSTANTS;
 
 GameConfigType GameConfig;
+
+GameStateType GameState;
 
 /***************************************************************************//**
  * Function definitions
@@ -164,6 +168,23 @@ void app_init(void)
 
   scrollTextConfig = initScrollTextConfig();
 
+
+  /* Set up random generation */
+
+  psa_status_t s;
+
+  s = psa_crypto_init();
+  if (s != PSA_SUCCESS) {
+      sl_led_turn_on(&sl_led_led0);
+      sl_led_turn_on(&sl_led_led1);
+      while (true) {
+
+      }
+  }
+
+
+
+
   /* Setup SysTick Timer for 1 msec interrupts  */
   if (SysTick_Config(CMU_ClockFreqGet(cmuClock_CORE)/1000)) {
     while (1) ;
@@ -178,6 +199,10 @@ void app_process_action(void)
 {
   static sl_button_state_t last = 1;
 
+  uint8_t randint;
+
+
+
   uint32_t curTicks = msTicks;
   game_ticks++;
 
@@ -191,7 +216,11 @@ void app_process_action(void)
   if (sl_button_get_state(&sl_button_btn1) == 1 ) {
       if (last != 1) scrollTextConfig.reset = true;
       sl_strcpy_s(scrollTextConfig.text, TEXT_LENGTH, textConstants[TXT_PRES]);
-      if (last != 1) sl_led_toggle(&sl_led_led0);
+      if (last != 1) {
+          sl_led_toggle(&sl_led_led0);
+          psa_generate_random(&randint, 1);
+          SegmentLCD_Number(randint);
+      }
 
   } else {
       if(last == 1) scrollTextConfig.reset = true;
