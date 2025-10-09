@@ -53,13 +53,15 @@ SegmentLCD_LowerCharSegments_TypeDef lowerCharSegments[SEGMENT_LCD_NUM_OF_LOWER_
 volatile uint32_t msTicks; /* counts 1ms timeTicks */
 int sliderPos;
 int sliderDownsc = 0, sliderDownscOld = 0;
-int game_ticks = 0;
+uint32_t game_ticks = 0;
 
 ScrollTextConfigType scrollTextConfig;
 
 const char * const textConstants[] = TEXT_CONSTANTS;
 
 GameConfigType GameConfig;
+
+GameStateType GameState;
 
 /***************************************************************************//**
  * Function definitions
@@ -99,9 +101,16 @@ void displayScrollText(void);
 /***************************************************************************//**
  * @brief Initialize scrolltext configuration with default values
  *
- * @return ScrollTExtConfigType
  ******************************************************************************/
-ScrollTextConfigType initScrollTextConfig(void);
+void initScrollTextConfig(ScrollTextConfigType *stc);
+
+
+/***************************************************************************//**
+ * @brief Initialize game state with default values
+ *
+ ******************************************************************************/
+void initGameState(GameStateType *gs);
+
 
 /***************************************************************************//**
  * Initialize application.
@@ -125,7 +134,7 @@ void app_init(void)
 
   sl_button_enable(&sl_button_btn1);
 
-  scrollTextConfig = initScrollTextConfig();
+  initScrollTextConfig(&scrollTextConfig);
 
   /* Setup SysTick Timer for 1 msec interrupts  */
   if (SysTick_Config(CMU_ClockFreqGet(cmuClock_CORE)/1000)) {
@@ -173,22 +182,35 @@ void app_process_action(void)
 
 
 /*
- * Initialize ScrollTextConfigType with defaults
+ * Initialize game state with defaults
  */
-ScrollTextConfigType initScrollTextConfig(void)
-{
-  ScrollTextConfigType res;
-
-  for (int i = 0; i < TEXT_LENGTH - 1; i++) {
-      res.text[i] = ' ';
+void initGameState(GameStateType *gs) {
+  gs->n_catched = 0;
+  for (int i = 0; i < 4; i++) {
+      gs->bananas[i] = 0;
+      gs->next_update[i] = 0;
   }
 
-  res.text[TEXT_LENGTH - 1] = '\0';
-  res.speed = 20;
-  res.reset = true;
-
-  return res;
+  return;
 }
+
+
+/*
+ * Initialize ScrollTextConfigType with defaults
+ */
+void initScrollTextConfig(ScrollTextConfigType *stc)
+{
+
+  for (int i = 0; i < TEXT_LENGTH - 1; i++) {
+      stc->text[i] = ' ';
+  }
+
+  stc->text[TEXT_LENGTH - 1] = '\0';
+  stc->speed = DEFAULT_TXT_SPEED;
+  stc->reset = true;
+
+}
+
 
 /*
  * Displays a scrolling text
