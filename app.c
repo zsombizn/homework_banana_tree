@@ -34,45 +34,6 @@
  * Includes
  ******************************************************************************/
 #include "app.h"
-/*
- * Header for the SegmentLCD driver extension
- */
-#include "segmentlcd_individual.h"
-
-/*
- * "segmentlcd.h" is also required, as the SegmentLCD driver extension does not
- * provide any initialization functions. We use the base SegmentLCD driver to
- * to initialize the display.
- */
-#include "segmentlcd.h"
-
-/*
- * "sl_udelay.h" is used only by the demo functions to slow things down.
- * Otherwise it is not required to use the SegmentLCD driver extension.
- */
-#include <sl_udelay.h>
-
-/*
- * Header for the capacitive sensor
- */
-#include "caplesense.h"
-
-/*
- * Header for device peripheral description
- */
-#include "em_device.h"
-#include "em_cmu.h"
-
-#include "sl_simple_button_instances.h"
-
-#include <sl_string.h>
-#include <string.h>
-#include <stdbool.h>
-
-#include "sl_simple_led.h"
-#include "sl_simple_led_instances.h"
-
-#include <psa/crypto.h>
 
 /***************************************************************************//**
  * Globals
@@ -144,6 +105,14 @@ void displayScrollText(void);
  ******************************************************************************/
 ScrollTextConfigType initScrollTextConfig(void);
 
+
+/***************************************************************************//**
+ * @brief Return a random int with a 2 bit range
+ *
+ ******************************************************************************/
+int rand_4(void);
+
+
 /***************************************************************************//**
  * Initialize application.
  ******************************************************************************/
@@ -199,8 +168,6 @@ void app_process_action(void)
 {
   static sl_button_state_t last = 1;
 
-  uint8_t randint;
-
 
 
   uint32_t curTicks = msTicks;
@@ -218,8 +185,7 @@ void app_process_action(void)
       sl_strcpy_s(scrollTextConfig.text, TEXT_LENGTH, textConstants[TXT_PRES]);
       if (last != 1) {
           sl_led_toggle(&sl_led_led0);
-          psa_generate_random(&randint, 1);
-          SegmentLCD_Number(randint);
+          SegmentLCD_Number(rand_4());
       }
 
   } else {
@@ -235,6 +201,24 @@ void app_process_action(void)
   while ((msTicks - curTicks) < GAME_TICK_INTERVAL) ;
 
   return;
+}
+
+
+int rand_4(void) {
+  uint8_t res = 0;
+  psa_status_t s;
+  s = psa_generate_random(&res, 1);
+
+  if (s != PSA_SUCCESS) {
+        sl_led_turn_on(&sl_led_led0);
+        sl_led_turn_on(&sl_led_led1);
+        while (true) {
+
+        }
+    }
+
+  res &= 0x03;
+  return res;
 }
 
 

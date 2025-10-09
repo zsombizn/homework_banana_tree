@@ -16,6 +16,45 @@
  ******************************************************************************/
 #include <stdbool.h>
 #include <stdint.h>
+/*
+ * Header for the SegmentLCD driver extension
+ */
+#include "segmentlcd_individual.h"
+
+/*
+ * "segmentlcd.h" is also required, as the SegmentLCD driver extension does not
+ * provide any initialization functions. We use the base SegmentLCD driver to
+ * to initialize the display.
+ */
+#include "segmentlcd.h"
+
+/*
+ * "sl_udelay.h" is used only by the demo functions to slow things down.
+ * Otherwise it is not required to use the SegmentLCD driver extension.
+ */
+#include <sl_udelay.h>
+
+/*
+ * Header for the capacitive sensor
+ */
+#include "caplesense.h"
+
+/*
+ * Header for device peripheral description
+ */
+#include "em_device.h"
+#include "em_cmu.h"
+
+#include "sl_simple_button_instances.h"
+
+#include <sl_string.h>
+#include <string.h>
+#include <stdbool.h>
+
+#include "sl_simple_led.h"
+#include "sl_simple_led_instances.h"
+
+#include <psa/crypto.h>
 
 #ifndef APP_H
 #define APP_H
