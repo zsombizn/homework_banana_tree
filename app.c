@@ -113,17 +113,27 @@ void initGameState(GameStateType *gs);
 
 
 /***************************************************************************//**
+ * @brief Gets difficulty from user (hardware should be initialized for this)
+ *        using the touch slider.
+ *
+ ******************************************************************************/
+int get_difficulty(void);
+
+
+/***************************************************************************//**
  * Initialize application.
  ******************************************************************************/
 void app_init(void)
 {
+
+  // Hardware init
   /*
    * The SegmentLCD driver extension does not provide an initialization
    * functions. However, we need to call the initialization function of the
    * underlying base SegmentLCD driver.
    */
 
-  sl_led_toggle(&sl_led_led0);
+
 
   /* Enable LCD without voltage boost */
   SegmentLCD_Init(false);
@@ -141,6 +151,14 @@ void app_init(void)
     while (1) ;
   }
 
+  // Game init
+
+  initGameState(&GameState);
+  GameConfig.difficulty = get_difficulty();
+  GameConfig.n_bananas = DEFAULT_N_BANANAS;
+
+
+
 }
 
 /***************************************************************************//**
@@ -150,6 +168,7 @@ void app_process_action(void)
 {
   static sl_button_state_t last = 1;
 
+  // Store the system tick in the start of the function
   uint32_t curTicks = msTicks;
   game_ticks++;
 
@@ -158,6 +177,8 @@ void app_process_action(void)
    * meaning it changes state after the last n inputs are consistent
    * (stable for GAME_TICK_INTERVAL*n ms)
    */
+
+  SegmentLCD_Number(GameConfig.difficulty);
   sl_button_poll_step(&sl_button_btn1);
 
   if (sl_button_get_state(&sl_button_btn1) == 1 ) {
@@ -174,10 +195,53 @@ void app_process_action(void)
 
   displayScrollText();
 
-
+  // Delay some time, to fill in the rest of the current game tick
+  // This way, the function runs for roughly one game tick interval
   while ((msTicks - curTicks) < GAME_TICK_INTERVAL) ;
 
   return;
+}
+
+
+/*
+ * Get difficulty from user
+ */
+int get_difficulty(void) {
+  bool ready = false;
+  int res = DEFAULT_DIFFICULTY;
+  uint32_t curTicks;
+
+  scrollTextConfig.reset = true;
+  sl_strcpy_s(scrollTextConfig.text, TEXT_LENGTH, textConstants[TXT_SET_DIFF]);
+
+  while (!ready) {
+      curTicks = msTicks;
+
+      sl_button_poll_step(&sl_button_btn1);
+
+      sliderPos = CAPLESENSE_getSliderPosition();
+      if(sliderPos != -1) {
+          res = (sliderPos * 8) / 49;
+      }
+      //SegmentLCD_Number(res);
+
+      for (int i = 0; i < 8; i++)
+          SegmentLCD_ARing(i, (i <= res));
+
+      if ( sl_button_get_state(&sl_button_btn1) == SL_SIMPLE_BUTTON_PRESSED ) {
+          ready = true;
+      }
+
+      displayScrollText();
+
+
+      // Same ticking logic as in the process app function
+      while ((msTicks - curTicks) < GAME_TICK_INTERVAL) ;
+  }
+
+  SegmentLCD_AllOff();
+
+  return res;
 }
 
 

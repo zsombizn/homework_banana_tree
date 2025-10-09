@@ -59,6 +59,7 @@
 // In ms, used for button polling as well
 #define GAME_TICK_INTERVAL 20
 #define DEFAULT_DIFFICULTY 3
+#define DEFAULT_N_BANANAS 25
 
 
 #define TEXT_LENGTH 35
@@ -66,20 +67,20 @@
 #define DEFAULT_TXT_SPEED 20
 
 
-
-
 typedef enum {
     TXT_REL,
     TXT_PRES,
     TXT_GAME_OVER,
+    TXT_SET_DIFF,
     TXT_COUNT
 } TextId;
 
 
-#define TEXT_CONSTANTS {     \
-  [TXT_REL] = "Released",    \
-  [TXT_PRES] = "Pressed",    \
-  [TXT_GAME_OVER] = "GAME OVER!" \
+#define TEXT_CONSTANTS {            \
+  [TXT_REL] = "Released",           \
+  [TXT_PRES] = "Pressed",           \
+  [TXT_GAME_OVER] = "GAME OVER!",   \
+  [TXT_SET_DIFF] = "Set difficulty" \
   }
 
 
@@ -96,7 +97,7 @@ typedef struct {
 /**
  * @brief Represents game config, like difficulty, and total number of bananas.
  */
-typedef const struct {
+typedef struct {
   int difficulty;
   int n_bananas;
 } GameConfigType;
