@@ -106,6 +106,13 @@ void initScrollTextConfig(ScrollTextConfigType *stc);
 
 
 /***************************************************************************//**
+ * @brief Set text constant in scrolltext
+ *
+ ******************************************************************************/
+void set_display_text(TextId t);
+
+
+/***************************************************************************//**
  * @brief Initialize game state with default values
  *
  ******************************************************************************/
@@ -113,12 +120,25 @@ void initGameState(GameStateType *gs);
 
 
 /***************************************************************************//**
+ * @brief Initialize game config with default values
+ *
+ ******************************************************************************/
+void initGameConfig(GameConfigType *gc);
+
+
+/***************************************************************************//**
  * @brief Gets difficulty from user (hardware should be initialized for this)
  *        using the touch slider.
  *
  ******************************************************************************/
-int get_difficulty(void);
+void get_difficulty(void);
 
+
+/***************************************************************************//**
+ * @brief Updates the game in each tick
+ *
+ ******************************************************************************/
+void update_game(void);
 
 /***************************************************************************//**
  * Initialize application.
@@ -152,12 +172,8 @@ void app_init(void)
   }
 
   // Game init
-
   initGameState(&GameState);
-  GameConfig.difficulty = get_difficulty();
-  GameConfig.n_bananas = DEFAULT_N_BANANAS;
-
-
+  initGameConfig(&GameConfig);
 
 }
 
@@ -166,7 +182,6 @@ void app_init(void)
  ******************************************************************************/
 void app_process_action(void)
 {
-  static sl_button_state_t last = 1;
 
   // Store the system tick in the start of the function
   uint32_t curTicks = msTicks;
@@ -177,24 +192,34 @@ void app_process_action(void)
    * meaning it changes state after the last n inputs are consistent
    * (stable for GAME_TICK_INTERVAL*n ms)
    */
-
-  SegmentLCD_Number(GameConfig.difficulty);
   sl_button_poll_step(&sl_button_btn1);
 
-  if (sl_button_get_state(&sl_button_btn1) == 1 ) {
-      if (last != 1) scrollTextConfig.reset = true;
-      sl_strcpy_s(scrollTextConfig.text, TEXT_LENGTH, textConstants[TXT_PRES]);
-      if (last != 1) sl_led_toggle(&sl_led_led0);
+  /*
+   * Get slider position, and indicate if touch sensor is active with a led
+   */
+  sliderPos = CAPLESENSE_getSliderPosition();
 
+  if (sliderPos > 0) {
+      sl_led_turn_on(&sl_led_led0);
   } else {
-      if(last == 1) scrollTextConfig.reset = true;
-      sl_strcpy_s(scrollTextConfig.text, TEXT_LENGTH, textConstants[TXT_REL]);
+      sl_led_turn_off(&sl_led_led0);
   }
 
-  last = sl_button_get_state(&sl_button_btn1);
+  switch (GameState.status) {
+    case STARTING:
+      get_difficulty();
+      break;
 
-  displayScrollText();
+    case RUNNING:
+      update_game();
+      break;
 
+    case ENDED:
+
+      break;
+    default:
+      break;
+  }
   // Delay some time, to fill in the rest of the current game tick
   // This way, the function runs for roughly one game tick interval
   while ((msTicks - curTicks) < GAME_TICK_INTERVAL) ;
@@ -202,46 +227,59 @@ void app_process_action(void)
   return;
 }
 
-
 /*
- * Get difficulty from user
+ * Get difficulty from user, and init game config
  */
-int get_difficulty(void) {
-  bool ready = false;
-  int res = DEFAULT_DIFFICULTY;
-  uint32_t curTicks;
+void get_difficulty(void) {
 
-  scrollTextConfig.reset = true;
-  sl_strcpy_s(scrollTextConfig.text, TEXT_LENGTH, textConstants[TXT_SET_DIFF]);
+  set_display_text(TXT_SET_DIFF);
 
-  while (!ready) {
-      curTicks = msTicks;
-
-      sl_button_poll_step(&sl_button_btn1);
-
-      sliderPos = CAPLESENSE_getSliderPosition();
-      if(sliderPos != -1) {
-          res = (sliderPos * 8) / 49;
-      }
-      //SegmentLCD_Number(res);
-
-      for (int i = 0; i < 8; i++)
-          SegmentLCD_ARing(i, (i <= res));
-
-      if ( sl_button_get_state(&sl_button_btn1) == SL_SIMPLE_BUTTON_PRESSED ) {
-          ready = true;
-      }
-
-      displayScrollText();
-
-
-      // Same ticking logic as in the process app function
-      while ((msTicks - curTicks) < GAME_TICK_INTERVAL) ;
+  if(sliderPos != -1) {
+      GameConfig.difficulty = (sliderPos * 8) / 49;
   }
 
-  SegmentLCD_AllOff();
+  for (int i = 0; i < 8; i++)
+      SegmentLCD_ARing(i, (i <= GameConfig.difficulty));
 
-  return res;
+
+  // If button is pressed, jump to the next state, and clear the screen
+  // (ARing would stay)
+  if ( sl_button_get_state(&sl_button_btn1) == SL_SIMPLE_BUTTON_PRESSED ) {
+      GameState.status = RUNNING;
+      SegmentLCD_AllOff();
+  }
+
+  displayScrollText();
+
+}
+
+
+void update_game(void) {
+  static int sliderDownsc = 0;
+  // clear screen
+  for (uint8_t p = 0; p < SEGMENT_LCD_NUM_OF_LOWER_CHARS; p++) {
+      lowerCharSegments[p].raw = 0;
+  }
+
+  // calculate position
+  if (sliderPos >= 0) {
+      sliderDownsc = sliderPos*4/49;
+
+  }
+
+  // set segment lines belonging to slider
+  lowerCharSegments[sliderDownsc].d = 1;
+
+  // draw LCD
+  SegmentLCD_LowerSegments(lowerCharSegments);
+}
+
+
+void initGameConfig(GameConfigType *gc) {
+  gc->difficulty = DEFAULT_DIFFICULTY;
+  gc->n_bananas = DEFAULT_N_BANANAS;
+
+  return;
 }
 
 
@@ -254,10 +292,17 @@ void initGameState(GameStateType *gs) {
       gs->bananas[i] = 0;
       gs->next_update[i] = 0;
   }
+  gs->status = STARTING;
 
   return;
 }
 
+
+void set_display_text(TextId t){
+  sl_strcpy_s(scrollTextConfig.text, TEXT_LENGTH, textConstants[t]);
+
+  return;
+}
 
 /*
  * Initialize ScrollTextConfigType with defaults

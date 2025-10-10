@@ -57,22 +57,32 @@
 #define APP_H
 
 // In ms, used for button polling as well
-#define GAME_TICK_INTERVAL 20
+#define GAME_TICK_INTERVAL 10
 #define DEFAULT_DIFFICULTY 3
 #define DEFAULT_N_BANANAS 25
 
 
 #define TEXT_LENGTH 35
 #define DISPLAY_WIDTH 7
-#define DEFAULT_TXT_SPEED 20
+#define DEFAULT_TXT_SPEED 30
+
+
+typedef int game_status_t;
 
 
 typedef enum {
-    TXT_REL,
-    TXT_PRES,
-    TXT_GAME_OVER,
-    TXT_SET_DIFF,
-    TXT_COUNT
+  STARTING,
+  RUNNING,
+  ENDED
+}game_statusId;
+
+
+typedef enum {
+  TXT_REL,
+  TXT_PRES,
+  TXT_GAME_OVER,
+  TXT_SET_DIFF,
+  TXT_COUNT
 } TextId;
 
 
@@ -114,6 +124,7 @@ typedef struct {
   int n_catched;
   int bananas[4];
   uint32_t next_update[4];
+  game_status_t status;
 
 } GameStateType;
 
