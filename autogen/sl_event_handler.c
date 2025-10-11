@@ -8,6 +8,12 @@
 #include "sl_device_init_clocks.h"
 #include "sl_device_init_emu.h"
 #include "sl_board_control.h"
+#include "gpiointerrupt.h"
+#include "sl_mbedtls.h"
+#include "nvm3_default.h"
+#include "sl_simple_button_instances.h"
+#include "sl_simple_led_instances.h"
+#include "psa/crypto.h"
 
 void sl_platform_init(void)
 {
@@ -19,15 +25,21 @@ void sl_platform_init(void)
   sl_device_init_clocks();
   sl_device_init_emu();
   sl_board_init();
+  nvm3_initDefault();
 }
 
 void sl_driver_init(void)
 {
+  GPIOINT_Init();
+  sl_simple_button_init_instances();
+  sl_simple_led_init_instances();
 }
 
 void sl_service_init(void)
 {
   sl_board_configure_vcom();
+  sl_mbedtls_init();
+  psa_crypto_init();
 }
 
 void sl_stack_init(void)
