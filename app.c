@@ -35,7 +35,6 @@
  ******************************************************************************/
 #include "app.h"
 
-
 /***************************************************************************//**
  * Globals
  ******************************************************************************/
@@ -53,6 +52,7 @@ SegmentLCD_LowerCharSegments_TypeDef lowerCharSegments[SEGMENT_LCD_NUM_OF_LOWER_
 volatile uint32_t msTicks; /* counts 1ms timeTicks */
 int sliderPos;
 int sliderDownsc = 0, sliderDownscOld = 0;
+
 uint32_t game_ticks = 0;
 
 ScrollTextConfigType scrollTextConfig;
@@ -140,6 +140,14 @@ void get_difficulty(void);
  ******************************************************************************/
 void update_game(void);
 
+
+/***************************************************************************//**
+ * @brief Return a random int with a 2 bit range
+ *
+ ******************************************************************************/
+int rand_4(void);
+
+
 /***************************************************************************//**
  * Initialize application.
  ******************************************************************************/
@@ -166,6 +174,23 @@ void app_init(void)
 
   initScrollTextConfig(&scrollTextConfig);
 
+
+  /* Set up random generation */
+
+  psa_status_t s;
+
+  s = psa_crypto_init();
+  if (s != PSA_SUCCESS) {
+      sl_led_turn_on(&sl_led_led0);
+      sl_led_turn_on(&sl_led_led1);
+      while (true) {
+
+      }
+  }
+
+
+
+
   /* Setup SysTick Timer for 1 msec interrupts  */
   if (SysTick_Config(CMU_ClockFreqGet(cmuClock_CORE)/1000)) {
     while (1) ;
@@ -182,7 +207,6 @@ void app_init(void)
  ******************************************************************************/
 void app_process_action(void)
 {
-
   // Store the system tick in the start of the function
   uint32_t curTicks = msTicks;
   game_ticks++;
@@ -193,7 +217,6 @@ void app_process_action(void)
    * (stable for GAME_TICK_INTERVAL*n ms)
    */
   sl_button_poll_step(&sl_button_btn1);
-
 
   // Get slider position, and indicate if touch sensor is active with a led
   sliderPos = CAPLESENSE_getSliderPosition();
@@ -327,6 +350,24 @@ void initGameConfig(GameConfigType *gc) {
   gc->n_bananas = DEFAULT_N_BANANAS;
 
   return;
+}
+
+
+int rand_4(void) {
+  uint8_t res = 0;
+  psa_status_t s;
+  s = psa_generate_random(&res, 1);
+
+  if (s != PSA_SUCCESS) {
+        sl_led_turn_on(&sl_led_led0);
+        sl_led_turn_on(&sl_led_led1);
+        while (true) {
+
+        }
+    }
+
+  res &= 0x03;
+  return res;
 }
 
 

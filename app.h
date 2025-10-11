@@ -49,9 +49,12 @@
 
 #include <sl_string.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "sl_simple_led.h"
 #include "sl_simple_led_instances.h"
+
+#include <psa/crypto.h>
 
 #ifndef APP_H
 #define APP_H
@@ -68,6 +71,7 @@
 
 
 typedef int game_status_t;
+
 
 
 typedef enum {

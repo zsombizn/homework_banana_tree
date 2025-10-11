@@ -37,6 +37,10 @@ component:
 - {id: emlib_rtc}
 - {id: emlib_vcmp}
 - {id: led}
+- {id: mbedtls_entropy_default}
+- {id: mbedtls_random}
+- {id: psa_crypto}
+- {id: psa_its}
 - instance: [btn0, btn1]
   id: simple_button
 - instance: [led0, led1]
