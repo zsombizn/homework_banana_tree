@@ -153,15 +153,14 @@ int rand_4(void);
  ******************************************************************************/
 void app_init(void)
 {
-
-  // Hardware init
   /*
+   * Hardware init
+   *
+   *
    * The SegmentLCD driver extension does not provide an initialization
    * functions. However, we need to call the initialization function of the
    * underlying base SegmentLCD driver.
    */
-
-
 
   /* Enable LCD without voltage boost */
   SegmentLCD_Init(false);
@@ -188,15 +187,12 @@ void app_init(void)
       }
   }
 
-
-
-
   /* Setup SysTick Timer for 1 msec interrupts  */
   if (SysTick_Config(CMU_ClockFreqGet(cmuClock_CORE)/1000)) {
     while (1) ;
   }
 
-  // Game init
+  /* Game init */
   initGameState(&GameState);
   initGameConfig(&GameConfig);
 
@@ -279,7 +275,9 @@ void get_difficulty(void) {
 void update_game(void) {
   static int sliderDownsc = 0;
   static int last_spawn = 0;
-  static int spawned_bananas = 0;
+  static int fallen_bananas = 0;
+
+  int r;
 
   // clear screen
   for (uint8_t p = 0; p < SEGMENT_LCD_NUM_OF_LOWER_CHARS; p++) {
@@ -293,14 +291,14 @@ void update_game(void) {
 
   // spawn banana
   if (game_ticks - last_spawn >= (8-(uint32_t)GameConfig.difficulty)*30 + 5) {
-      GameState.bananas[0] = 3;
-      GameState.next_update[0] = game_ticks + ((8-GameConfig.difficulty) * 10);
+      r = rand_4();
+      GameState.bananas[r] = 3;
+      GameState.next_update[r] = game_ticks + ((8-GameConfig.difficulty) * 10);
 
       last_spawn = game_ticks;
-      spawned_bananas++;
   }
 
-  if (GameConfig.n_bananas < spawned_bananas ) {
+  if (GameConfig.n_bananas <= fallen_bananas ) {
       GameState.status = ENDED;
       scrollTextConfig.reset = true;
       set_display_text(TXT_GAME_OVER);
@@ -313,6 +311,7 @@ void update_game(void) {
               if (i == sliderDownsc) {
                   GameState.n_catched++;
               }
+              fallen_bananas++;
           }
           if (GameState.bananas[i] >= 1) {
               GameState.bananas[i]--;
@@ -334,7 +333,7 @@ void update_game(void) {
   }
 
 
-  SegmentLCD_Number(spawned_bananas*100+GameState.n_catched);
+  SegmentLCD_Number(fallen_bananas*100+GameState.n_catched);
   SegmentLCD_Symbol(LCD_SYMBOL_COL10, 1);
 
   // set segment lines belonging to slider
