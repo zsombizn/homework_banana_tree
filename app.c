@@ -194,9 +194,8 @@ void app_process_action(void)
    */
   sl_button_poll_step(&sl_button_btn1);
 
-  /*
-   * Get slider position, and indicate if touch sensor is active with a led
-   */
+
+  // Get slider position, and indicate if touch sensor is active with a led
   sliderPos = CAPLESENSE_getSliderPosition();
 
   if (sliderPos > 0) {
@@ -215,7 +214,7 @@ void app_process_action(void)
       break;
 
     case ENDED:
-
+      displayScrollText();
       break;
     default:
       break;
@@ -256,6 +255,9 @@ void get_difficulty(void) {
 
 void update_game(void) {
   static int sliderDownsc = 0;
+  static int last_spawn = 0;
+  static int spawned_bananas = 0;
+
   // clear screen
   for (uint8_t p = 0; p < SEGMENT_LCD_NUM_OF_LOWER_CHARS; p++) {
       lowerCharSegments[p].raw = 0;
@@ -264,8 +266,53 @@ void update_game(void) {
   // calculate position
   if (sliderPos >= 0) {
       sliderDownsc = sliderPos*4/49;
-
   }
+
+  // spawn banana
+  if (game_ticks - last_spawn >= (8-(uint32_t)GameConfig.difficulty)*30 + 5) {
+      GameState.bananas[0] = 3;
+      GameState.next_update[0] = game_ticks + ((8-GameConfig.difficulty) * 10);
+
+      last_spawn = game_ticks;
+      spawned_bananas++;
+  }
+
+  if (GameConfig.n_bananas < spawned_bananas ) {
+      GameState.status = ENDED;
+      scrollTextConfig.reset = true;
+      set_display_text(TXT_GAME_OVER);
+      return;
+  }
+  // update fields
+  for (int i = 0; i < 4; i++) {
+      if (GameState.next_update[i] <= game_ticks) {
+          if (GameState.bananas[i] == 1) {
+              if (i == sliderDownsc) {
+                  GameState.n_catched++;
+              }
+          }
+          if (GameState.bananas[i] >= 1) {
+              GameState.bananas[i]--;
+              GameState.next_update[i] = game_ticks + ((8-GameConfig.difficulty) * 10);
+          }
+      }
+  }
+
+
+  // draw game
+  for (int i = 0; i < 4; i++) {
+      if(GameState.bananas[i] == 3) {
+          lowerCharSegments[i].a = 1;
+      } else if (GameState.bananas[i] == 2) {
+          lowerCharSegments[i].j = 1;
+      } else if (GameState.bananas[i] == 1) {
+          lowerCharSegments[i].p = 1;
+      }
+  }
+
+
+  SegmentLCD_Number(spawned_bananas*100+GameState.n_catched);
+  SegmentLCD_Symbol(LCD_SYMBOL_COL10, 1);
 
   // set segment lines belonging to slider
   lowerCharSegments[sliderDownsc].d = 1;
