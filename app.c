@@ -289,8 +289,8 @@ void update_game(void) {
       sliderDownsc = sliderPos*4/49;
   }
 
-  // spawn banana
-  if (game_ticks - last_spawn >= (8-(uint32_t)GameConfig.difficulty)*30 + 5) {
+  // spawn banana (spawn rate calculated, so it spawns only one banana at a time)
+  if (game_ticks - last_spawn >= (8-(uint32_t)GameConfig.difficulty)*12 + 10) {
       r = rand_4();
       GameState.bananas[r] = 3;
       GameState.next_update[r] = game_ticks + ((8-GameConfig.difficulty) * 10);
@@ -304,18 +304,25 @@ void update_game(void) {
       set_display_text(TXT_GAME_OVER);
       return;
   }
+
   // update fields
   for (int i = 0; i < 4; i++) {
-      if (GameState.next_update[i] <= game_ticks) {
+      if (GameState.next_update[i] <= game_ticks && GameState.next_update[i] != 0) {
+
+          // last segment
           if (GameState.bananas[i] == 1) {
               if (i == sliderDownsc) {
                   GameState.n_catched++;
               }
+              GameState.bananas[i] = 0;
+              GameState.next_update[i] = 0;
               fallen_bananas++;
           }
-          if (GameState.bananas[i] >= 1) {
+
+          // above
+          if (GameState.bananas[i] > 1) {
               GameState.bananas[i]--;
-              GameState.next_update[i] = game_ticks + ((8-GameConfig.difficulty) * 10);
+              GameState.next_update[i] = game_ticks + ((8-GameConfig.difficulty) + 3);
           }
       }
   }
